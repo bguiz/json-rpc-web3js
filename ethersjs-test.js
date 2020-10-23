@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const {
   ethers
 } = require('ethers');
@@ -12,6 +15,8 @@ describe(`Rskj ethers.js Smoke Tests`, function () {
   let provider;
   let signer;
   let mine;
+  let contract;
+  let deployedContract;
 
   before(async () => {
     rpcUrl = 'http://127.0.0.1:4444';
@@ -69,5 +74,28 @@ describe(`Rskj ethers.js Smoke Tests`, function () {
     console.log({ blockNumber });
     assert.strictEqual(typeof blockNumber, 'number');
     assert.isAbove(blockNumber, prevBlockNumber + 4);
+  });
+
+  it('should deploy a contract', async () => {
+    this.timeout(45e3);
+
+    const contractJsonPath = path.resolve(__dirname, 'Contracts', 'HelloWorld.json');
+    const contractJson = await fs.promises.readFile(contractJsonPath);
+    contract = JSON.parse(contractJson);
+    let abi = contract.abi;
+    let bytecode = contract.bytecode;
+    const contractFactory = new ethers.ContractFactory(abi, bytecode, signer);
+    deployedContract = await contractFactory.deploy([]);
+    console.log(deployedContract);
+  });
+
+  it('should interact with contract - query', async () => {
+    const value = await deployedContract.functions.get();
+    console.log({ value });
+  });
+
+  it('should interact with contract - command', async () => {
+    const value = await deployedContract.functions.set(999);
+    console.log({ value });
   });
 });
