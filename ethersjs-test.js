@@ -42,4 +42,32 @@ describe(`Rskj ethers.js Smoke Tests`, function () {
       Object.assign(provider.formatter, { formats });
     }
   });
+
+  it('should get chainId', async () => {
+    const chainIdResponse = await provider.send(
+      'eth_chainId', []);
+    console.log({ chainIdResponse });
+    const chainId = parseInt(chainIdResponse, 0x10);
+    assert.strictEqual(typeof chainId, 'number');
+    assert.strictEqual(chainId, 33);
+  });
+
+  let prevBlockNumber;
+  it('should get a block number', async () => {
+    const blockNumber = await provider.getBlockNumber();
+    console.log({ blockNumber });
+    assert.strictEqual(typeof blockNumber, 'number');
+    assert.isAbove(blockNumber, 0);
+    prevBlockNumber = blockNumber;
+  });
+
+  it('should force blocks to be mined immediately', async () => {
+    for (let i = 0; i < 5; ++i) {
+      await mine();
+    }
+    const blockNumber = await provider.getBlockNumber();
+    console.log({ blockNumber });
+    assert.strictEqual(typeof blockNumber, 'number');
+    assert.isAbove(blockNumber, prevBlockNumber + 4);
+  });
 });
