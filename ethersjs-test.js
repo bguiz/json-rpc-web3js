@@ -27,5 +27,19 @@ describe(`Rskj ethers.js Smoke Tests`, function () {
     );
     signer = provider.getSigner(0);
     mine = (() => provider.send('evm_mine'));
+
+    // reduced polling interval
+    // RSK needs half as frequent frequent polling,
+    // default of 4s is based on Ethereum
+    provider.pollingInterval = 8e3;
+
+    // workaround for invalid transaction receipt
+    // Ref: https://github.com/ethers-io/ethers.js/pull/952
+    const formats =
+      provider.formatter && provider.formatter.formats;
+    if (formats && formats.receipt) {
+      formats.receipt.root = formats.receipt.logsBloom;
+      Object.assign(provider.formatter, { formats });
+    }
   });
 });
